@@ -29,6 +29,7 @@ public struct PaginatedScrollView<Content: View>: View {
                     if canRefresh {
                         if manager.isLoading {
                             ProgressView()
+                                .padding()
                         } else {
                             ProgressView("", value: manager.isLoading ? 100 : manager.reloader.progressValue, total: 100.00)
                                 .labelsHidden()

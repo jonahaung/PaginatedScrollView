@@ -16,7 +16,7 @@ public class PaginatedScrollViewManager: ObservableObject {
 
     // Timing
     private var lastTimestamp: Int64 = 0
-    private var minInterval = Int64(50)
+    private var minInterval = Int64(60)
     
     var canreturn: Bool {
         let currentTimeStamp = Int64(Date().timeIntervalSince1970 * 1000)
