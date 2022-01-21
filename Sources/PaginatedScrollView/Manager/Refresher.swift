@@ -25,7 +25,7 @@ public extension PaginatedScrollViewManager {
             var result = false
             switch refreshStatus {
             case .invalid:
-                if value > 10 && offsetY <= 10 {
+                if value > 20 && offsetY <= 20 {
                     refreshStatus = .valid
                 }
             case .valid:
