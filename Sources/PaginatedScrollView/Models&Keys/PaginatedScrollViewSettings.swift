@@ -11,9 +11,6 @@ public struct PaginatedScrollViewSettings {
     
     public var moreLoaderTreshold: CGFloat
     public var reloaderTreshold: CGFloat
-    public var atTopPercent: CGFloat
-    public var atBottomPercent: CGFloat
-    public var preferenceChangeTimeInterval: Int64
     
-    public static let defaultSettings = PaginatedScrollViewSettings(moreLoaderTreshold: 50, reloaderTreshold: 140, atTopPercent: 1.0, atBottomPercent: 0.01, preferenceChangeTimeInterval: 30)
+    public static let defaultSettings = PaginatedScrollViewSettings(moreLoaderTreshold: 50, reloaderTreshold: 140)
 }

@@ -16,7 +16,7 @@ public class PaginatedScrollViewManager: ObservableObject {
 
     // Timing
     private var lastTimestamp: Int64 = 0
-    private var minInterval = Int64(0)
+    private var minInterval = Int64(50)
     
     var canreturn: Bool {
         let currentTimeStamp = Int64(Date().timeIntervalSince1970 * 1000)
@@ -35,8 +35,5 @@ public class PaginatedScrollViewManager: ObservableObject {
     init(settings: PaginatedScrollViewSettings = .defaultSettings) {
         reloader.threshold = settings.reloaderTreshold
         moreLoader.threshold = settings.moreLoaderTreshold
-        PaginatedScrollViewKey.PreData.atTopPercent = settings.atTopPercent
-        PaginatedScrollViewKey.PreData.atBottomPercent = settings.atBottomPercent
-        minInterval = settings.preferenceChangeTimeInterval
     }
 }

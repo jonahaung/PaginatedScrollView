@@ -17,8 +17,7 @@ public struct PaginatedScrollViewKey {
     }
     
     struct PreData: Equatable {
-        static var atTopPercent = CGFloat(1.0)
-        static var atBottomPercent = CGFloat(0.001)
+        static var fraction = CGFloat(0.001)
         
         let top: CGFloat
         let bottom: CGFloat
@@ -32,12 +31,12 @@ public struct PaginatedScrollViewKey {
     
         var isAtTop: Bool {
             let percentage = (top / contentHeight)
-            return percentage > PreData.atBottomPercent
+            return percentage > PreData.fraction
         }
         
         var isAtBottom: Bool {
             let percentage = (bottom / contentHeight)
-            return percentage < PreData.atBottomPercent
+            return percentage < PreData.fraction
         }
         
         private var contentHeight: CGFloat {
