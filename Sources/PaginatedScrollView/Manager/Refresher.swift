@@ -49,7 +49,7 @@ public extension PaginatedScrollViewManager {
         
         private func calculateProgress(_ scrollOffset: CGFloat) -> CGFloat {
             
-            let percent = 0.00
+            let percent = 0.01
             if scrollOffset < threshold * percent {
                 return 0
             } else {
