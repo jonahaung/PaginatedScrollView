@@ -17,7 +17,7 @@ public struct PaginatedScrollViewKey {
     }
     
     struct PreData: Equatable {
-        static var fraction = CGFloat(0.001)
+        static var fraction = CGFloat(0.01)
         
         let top: CGFloat
         let bottom: CGFloat
