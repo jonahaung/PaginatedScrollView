@@ -31,8 +31,7 @@ public struct PaginatedScrollViewKey {
     
         var isAtTop: Bool {
             let percentage = abs(top / contentHeight)
-            print(percentage)
-            return percentage > PreData.fraction
+            return percentage < PreData.fraction
         }
         
         var isAtBottom: Bool {
