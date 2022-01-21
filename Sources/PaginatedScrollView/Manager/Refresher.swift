@@ -65,6 +65,7 @@ public extension PaginatedScrollViewManager {
         mutating func reset() {
             refreshStatus = .invalid
             progressValue = 0
+            offsetY = -100
         }
     }
 }
