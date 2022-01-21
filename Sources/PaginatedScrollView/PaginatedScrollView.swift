@@ -55,8 +55,10 @@ public struct PaginatedScrollView<Content: View>: View {
             .onPreferenceChange(PaginatedScrollViewKey.PreKey.self) { data in
                 guard let data = data, !manager.isLoading else { return }
                 if data.position == .top {
+                    print("top")
                     refresh(data: data)
                 } else {
+                    print("bott")
                     loadMore(data: data)
                 }
             }
