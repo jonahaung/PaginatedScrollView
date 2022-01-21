@@ -6,6 +6,6 @@ final class PaginatedScrollViewTests: XCTestCase {
         // This is an example of a functional test case.
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
-        XCTAssertEqual(PaginatedScrollView().text, "Hello, World!")
+//        XCTAssertEqual(PaginatedScrollView().text, "Hello, World!")
     }
 }
