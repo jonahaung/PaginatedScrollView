@@ -25,28 +25,25 @@ public extension PaginatedScrollViewManager {
             var result = false
             switch refreshStatus {
             case .invalid:
-                if value > 20 && offsetY == 0 {
+                if value > 20 && offsetY <= 20 {
                     refreshStatus = .valid
                 }
-                
             case .valid:
                 if value > threshold && offsetY <= threshold {
                     refreshStatus = .preparing
                     UIImpactFeedbackGenerator(style: .soft).impactOccurred()
                 }
-                progressValue = calculateProgress(value)
             case .preparing:
                 if offsetY > threshold && value <= threshold {
                     result = true
                     refreshStatus = .refreshing
                     UIImpactFeedbackGenerator(style: .soft).impactOccurred()
                 }
-               
             case .refreshing:
                 break
             }
             offsetY = value
-            
+            progressValue = calculateProgress(value)
             return result
         }
         
