@@ -55,7 +55,6 @@ public struct PaginatedScrollView<Content: View>: View {
             .onPreferenceChange(PaginatedScrollViewKey.PreKey.self) { data in
                 guard let data = data, !manager.isLoading else { return }
                 if data.position == .top {
-                   
                     refresh(data: data)
                 } else {
                     loadMore(data: data)
@@ -66,7 +65,7 @@ public struct PaginatedScrollView<Content: View>: View {
     
     
     private func refresh(data: PaginatedScrollViewKey.PreData) {
-        guard !manager.isLoading && data.isAtTop else { return }
+        guard data.isAtTop else { return }
         guard let action = reloadAction, manager.reloader.canRefresh(for: data.top) else { return }
         Task {
             manager.isLoading = true
@@ -80,8 +79,7 @@ public struct PaginatedScrollView<Content: View>: View {
     }
     
     private func loadMore(data: PaginatedScrollViewKey.PreData) {
-        guard !manager.isLoading && data.isAtBottom else { return }
-        print("bottom")
+        guard data.isAtBottom else { return }
         guard manager.moreLoader.canLoadMore, let action = loadMoreAction else { return }
         Task {
             manager.isLoading = true
