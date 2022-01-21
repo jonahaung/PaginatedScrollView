@@ -43,8 +43,7 @@ public struct PaginatedScrollView<Content: View>: View {
                 }
                 .padding(.bottom, geometry.safeAreaInsets.bottom)
                 .frame(width: geometry.size.width)
-                .background(Color(uiColor: .groupTableViewBackground).frame(maxHeight: .infinity))
-//                .background(Color(uiColor: .groupTableViewBackground).frame(height: 99999999))
+                .background(Color(uiColor: .groupTableViewBackground).frame(height: 99999999))
                 .anchorPreference(key: PaginatedScrollViewKey.PreKey.self, value: .bounds) {
                     guard canRefresh || canLoadMore && manager.canreturn else { return nil }
                     let frame = geometry[$0]
