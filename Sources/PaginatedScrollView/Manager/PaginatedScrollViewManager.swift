@@ -12,11 +12,7 @@ public class PaginatedScrollViewManager: ObservableObject {
     
     @Published var reloader = Refresher()
     @Published var moreLoader = MoreLoader()
-    @Published var isLoading = false {
-        didSet {
-            lastTimestamp = 0
-        }
-    }
+    @Published var isLoading = false
 
     // Timing
     private var lastTimestamp: Int64 = 0
