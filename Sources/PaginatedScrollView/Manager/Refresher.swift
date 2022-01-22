@@ -16,7 +16,7 @@ public extension PaginatedScrollViewManager {
         }
         
         var threshold: CGFloat = 140
-        private var offsetY = CGFloat.zero
+        var offsetY = CGFloat.zero
         
         private var refreshStatus = RefreshStatus.invalid
         var progressValue = 0.0
@@ -25,7 +25,7 @@ public extension PaginatedScrollViewManager {
             var result = false
             switch refreshStatus {
             case .invalid:
-                if value > 20 && offsetY == 0 {
+                if value > 20 && offsetY <= 20 {
                     refreshStatus = .valid
                 }
             case .valid:
@@ -65,7 +65,6 @@ public extension PaginatedScrollViewManager {
         mutating func reset() {
             refreshStatus = .invalid
             progressValue = 0
-            offsetY = -100
         }
     }
 }

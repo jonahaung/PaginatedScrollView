@@ -29,7 +29,6 @@ public struct PaginatedScrollView<Content: View>: View {
                     if canRefresh {
                         if manager.isLoading {
                             ProgressView()
-                                .padding()
                         } else {
                             ProgressView("", value: manager.isLoading ? 100 : manager.reloader.progressValue, total: 100.00)
                                 .labelsHidden()
@@ -46,7 +45,7 @@ public struct PaginatedScrollView<Content: View>: View {
                 .frame(width: geometry.size.width)
                 .background(Color(uiColor: .groupTableViewBackground).frame(height: 99999999))
                 .anchorPreference(key: PaginatedScrollViewKey.PreKey.self, value: .bounds) {
-                    guard (canRefresh || canLoadMore && manager.canreturn) && !manager.isLoading else { return nil }
+                    guard (canRefresh || canLoadMore) && manager.canreturn && !manager.isLoading else { return nil }
                     let frame = geometry[$0]
                     let top = frame.minY
                     let bottom = frame.maxY - geometry.size.height
@@ -66,7 +65,7 @@ public struct PaginatedScrollView<Content: View>: View {
     
     
     private func refresh(data: PaginatedScrollViewKey.PreData) {
-        guard !manager.isLoading && data.isAtTop else { return }
+        guard data.isAtTop else { return }
         guard let action = reloadAction, manager.reloader.canRefresh(for: data.top) else { return }
         Task {
             manager.isLoading = true
@@ -80,7 +79,7 @@ public struct PaginatedScrollView<Content: View>: View {
     }
     
     private func loadMore(data: PaginatedScrollViewKey.PreData) {
-        guard !manager.isLoading && data.isAtBottom else { return }
+        guard data.isAtBottom else { return }
         guard manager.moreLoader.canLoadMore, let action = loadMoreAction else { return }
         Task {
             manager.isLoading = true
