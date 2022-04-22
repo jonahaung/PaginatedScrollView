@@ -1,3 +1,3 @@
 # PaginatedScrollView
 
-A description of this package.
+SwiftUI ScrollView with pagination(scroll down) and refreshing(scroll up).
