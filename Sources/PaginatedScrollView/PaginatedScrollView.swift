@@ -1,90 +1,161 @@
-//
-//  ScrollViewOffset.swift
-//  MyBike
-//
-//  Created by Aung Ko Min on 23/12/21.
-//
-
 import SwiftUI
 
+@available(iOS 16.0, *)
+public typealias _AsyncAction = (@Sendable () async -> Void)
+@available(iOS 16.0, *)
+struct LoadMoreKey: EnvironmentKey {
+    static let defaultValue: _AsyncAction? = nil
+}
+@available(iOS 16.0, *)
+extension EnvironmentValues {
+    var loadMore: _AsyncAction? {
+        get { self[LoadMoreKey.self] }
+        set { self[LoadMoreKey.self] = newValue }
+    }
+}
+@available(iOS 16.0, *)
+extension PaginatedScrollView {
+    public func moreLoadable(action: @escaping _AsyncAction) -> some View {
+        environment(\.loadMore, action)
+    }
+}
+
+@available(iOS 16.0, *)
 public struct PaginatedScrollView<Content: View>: View {
-    
-    @Environment(\.reload) public var reloadAction: ReloadAction?
-    private var canRefresh: Bool { reloadAction != nil }
-    @Environment(\.loadMore) public var loadMoreAction: LoadMoreAction?
-    private var canLoadMore: Bool { loadMoreAction != nil }
-    
-    @StateObject private var manager = PaginatedScrollViewManager(settings: .defaultSettings)
-    
-    private let content: () -> Content
-    public init(settings: PaginatedScrollViewSettings = .defaultSettings, @ViewBuilder content: @escaping () -> Content) {
+    enum LoadingState: Hashable {
+        case ready, starting, ended
+    }
+    @ViewBuilder private let content: () -> Content
+    private var canLoadMore: Binding<Bool>
+    @Environment(\.loadMore) public var loadMoreAction: _AsyncAction?
+    @State private var state = LoadingState.ended
+    @Namespace private var scrollAreaID
+
+    public init(canLoadMore: Binding<Bool>, @ViewBuilder content: @escaping () -> Content) {
         self.content = content
-    
+        self.canLoadMore = canLoadMore
     }
-    
+
     public var body: some View {
-        GeometryReader { geometry in
-            ScrollView(showsIndicators: false) {
-                VStack {
-                    if canRefresh {
-                        if manager.isLoading {
-                            ProgressView()
-                        } else {
-                            ProgressView("", value: manager.isLoading ? 100 : manager.reloader.progressValue, total: 100.00)
-                                .labelsHidden()
+        ScrollView {
+            content()
+                .saveBounds(viewId: scrollAreaID)
+
+            if canLoadMore.wrappedValue {
+                ProgressView()
+                    .padding()
+            }
+        }
+        .retrieveBounds(viewId: scrollAreaID) { rect in
+            didUpdateVisibleRect(rect)
+        }
+        .coordinateSpace(name: scrollAreaID)
+        .scrollContentBackground(.visible)
+    }
+
+    private func didUpdateVisibleRect(_ value: CGRect?) {
+        guard let value, state == .ready else {
+            if state == .ended {
+                updateState(.ready)
+            }
+            return
+        }
+        let screenHeight = UIScreen.main.bounds.height
+        let nearBottom = value.maxY - screenHeight < 0
+        guard nearBottom else { return }
+        Task {
+            updateState(.starting)
+            await loadMoreAction?()
+            updateState(.ended)
+        }
+    }
+
+    func updateState(_ newValue: LoadingState) {
+        state = newValue
+    }
+}
+
+@available(iOS 16.0, *)
+struct SaveBoundsPrefData: Equatable {
+    let viewId: AnyHashable
+    let bounds: CGRect
+}
+@available(iOS 16.0, *)
+struct SaveSizePrefData: Equatable {
+    let viewId: String
+    let size: CGSize
+}
+@available(iOS 16.0, *)
+struct SaveBoundsPrefKey: PreferenceKey {
+    static var defaultValue: [SaveBoundsPrefData] = []
+    static func reduce(value: inout [SaveBoundsPrefData], nextValue: () -> [SaveBoundsPrefData]) {
+        value.append(contentsOf: nextValue())
+    }
+}
+@available(iOS 16.0, *)
+struct SaveSizePrefKey: PreferenceKey {
+    static var defaultValue: [SaveSizePrefData]? = nil
+    static func reduce(value: inout [SaveSizePrefData]?, nextValue: () -> [SaveSizePrefData]?) {
+        guard let next = nextValue() else { return }
+        value?.append(contentsOf: next)
+    }
+}
+
+
+@available(iOS 16.0, *)
+extension View {
+    public func saveBounds(viewId: AnyHashable, coordinateSpace: CoordinateSpace = .global) -> some View {
+        background(GeometryReader { proxy in
+            Color.clear.preference(key: SaveBoundsPrefKey.self, value: [SaveBoundsPrefData(viewId: viewId, bounds: proxy.frame(in: coordinateSpace))])
+        })
+    }
+
+    public func retrieveBounds(viewId: AnyHashable, _ rect: Binding<CGRect>) -> some View {
+        onPreferenceChange(SaveBoundsPrefKey.self) { preferences in
+            let preference = preferences.first(where: { $0.viewId == viewId })
+            if let preference {
+                rect.wrappedValue = preference.bounds
+            }
+        }
+    }
+    public func retrieveBounds(viewId: AnyHashable, _ completion: @escaping (CGRect) -> Void) -> some View {
+        onPreferenceChange(SaveBoundsPrefKey.self) { preferences in
+            let preference = preferences.first(where: { $0.viewId == viewId })
+            if let preference {
+                completion(preference.bounds)
+            }
+        }
+    }
+
+    public func saveSize(viewId: String?, coordinateSpace: CoordinateSpace = .local) -> some View {
+        Group {
+            if let viewId = viewId {
+                self.background(
+                    GeometryReader { proxy in
+                        Color.clear.preference(key: SaveSizePrefKey.self, value: [SaveSizePrefData(viewId: viewId, size: proxy.size)])
+                    }
+                )
+            } else {
+                self
+            }
+        }
+    }
+
+    public func retrieveSize(viewId: String?, _ rect: Binding<CGSize?>) -> some View {
+        Group {
+            if let viewId = viewId {
+                onPreferenceChange(SaveSizePrefKey.self) { preferences in
+                    DispatchQueue.main.async {
+                        guard let preferences = preferences else {
+                            return
                         }
-                    }
-                    
-                    content()
-                    
-                    if canLoadMore && manager.moreLoader.canLoadMore {
-                        ProgressView()
+                        let p = preferences.first(where: { $0.viewId == viewId })
+                        rect.wrappedValue = p?.size
                     }
                 }
-                .padding(.bottom, geometry.safeAreaInsets.bottom)
-                .frame(width: geometry.size.width)
-                .background(Color(uiColor: .groupTableViewBackground).frame(height: 99999999))
-                .anchorPreference(key: PaginatedScrollViewKey.PreKey.self, value: .bounds) {
-                    guard (canRefresh || canLoadMore) && manager.canreturn && !manager.isLoading else { return nil }
-                    let frame = geometry[$0]
-                    let top = frame.minY
-                    let bottom = frame.maxY - geometry.size.height
-                    return PaginatedScrollViewKey.PreData(top: top, bottom: bottom)
-                }
+            } else {
+                self
             }
-            .onPreferenceChange(PaginatedScrollViewKey.PreKey.self) { data in
-                guard let data = data, !manager.isLoading else { return }
-                if data.position == .top {
-                    refresh(data: data)
-                } else {
-                    loadMore(data: data)
-                }
-            }
-        }
-    }
-    
-    
-    private func refresh(data: PaginatedScrollViewKey.PreData) {
-        guard data.isAtTop else { return }
-        guard let action = reloadAction, manager.reloader.canRefresh(for: data.top) else { return }
-        Task {
-            manager.isLoading = true
-            await action()
-            manager.reloader.reset()
-            manager.moreLoader.canLoadMore = true
-            withAnimation {
-                manager.isLoading = false
-            }
-        }
-    }
-    
-    private func loadMore(data: PaginatedScrollViewKey.PreData) {
-        guard data.isAtBottom else { return }
-        guard manager.moreLoader.canLoadMore, let action = loadMoreAction else { return }
-        Task {
-            manager.isLoading = true
-            await action($manager.moreLoader.canLoadMore)
-            manager.isLoading = false
         }
     }
 }
